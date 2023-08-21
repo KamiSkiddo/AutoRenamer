@@ -7,10 +7,18 @@ import ida_funcs
 import ida_ida
 import ida_nalt
 import ida_name
+from idc import *
+import idaapi
 
 class DumpInfo():
     def __init__(self):
         pass
+    
+    def try_get_comment(self, ea):
+        cmt = GetCommentEx(ea, 0)
+        if cmt is not None:
+            return cmt
+        return GetCommentEx(ea, 1)
 
     def dump_info(self, filepath):
         imgBase = ida_nalt.get_imagebase()
@@ -26,10 +34,21 @@ class DumpInfo():
             maxi = 2**32
             if n.startswith("vtable_"):
                 output[n] = hex(ea - imgBase)
-                # PE32/PE32+ only support binaries up to 2GB
-                if ea - imgBase >= maxi:
-                    print('RVA out of range for name: ' + n, file=sys.stderr)
         
+        segment = idaapi.get_segm_by_name(".data")
+        if segment is not None:
+            print('reading comments')
+            start = segment.start_ea
+            end = segment.end_ea
+            currentAddress = start
+            while end >= currentAddress:
+                comment = self.try_get_comment(currentAddress)
+                if comment is not None:
+                    output["@" + comment] = hex(currentAddress - imgBase)
+                currentAddress += 8
+        else:
+            print(".data segments is null")
+                       
         # Functions            
         start = ida_ida.cvar.inf.min_ea
         end   = ida_ida.cvar.inf.max_ea
