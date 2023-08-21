@@ -17,9 +17,10 @@ class OffsetsImporter:
                 self.__import_name(key, value)
 
     def __import_name(self, name, addr):
-        name_addr = int(addr, 16)
         if name.startswith("@"):
-            idc.set_cmt(name_addr, str(name.replace("@", "")), False)
+            comment_addr = int(name.replace("@", ""), 16)
+            idc.set_cmt(comment_addr, str(addr), False)
         else:
+            name_addr = int(addr, 16)
             name = name.replace('<','(').replace('>',')')
             ida_name.set_name(name_addr + self.base, str(name))

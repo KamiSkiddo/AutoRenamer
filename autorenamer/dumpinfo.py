@@ -37,14 +37,14 @@ class DumpInfo():
         
         segment = idaapi.get_segm_by_name(".data")
         if segment is not None:
-            print('reading comments')
             start = segment.start_ea
             end = segment.end_ea
             currentAddress = start
             while end >= currentAddress:
                 comment = self.try_get_comment(currentAddress)
-                if comment is not None:
-                    output["@" + comment] = hex(currentAddress - imgBase)
+                blacklist = ["reference to RTTI's vftable", "type descriptor name", "internal runtime reference"]
+                if (comment is not None) and (comment not in blacklist):
+                    output["@" + hex(currentAddress - imgBase)] = comment 
                 currentAddress += 8
         else:
             print(".data segments is null")
