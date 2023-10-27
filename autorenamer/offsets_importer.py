@@ -20,6 +20,14 @@ class OffsetsImporter:
         if name.startswith("@"):
             comment_addr = int(name.replace("@", ""), 16)
             idc.set_cmt(comment_addr, str(addr), False)
+        elif name.startswith("#"):
+            ref_addr = int(addr, 16)
+            try:
+                func_addr = int(idc.print_operand(ref_addr, 0).split("offset ")[-1][4:], 16)
+                ida_name.set_name(func_addr + self.base, str(name).replace("#", ""))
+            except ValueError:
+                # idc.set_cmt(ref_addr, str(addr), False)
+                pass
         else:
             name_addr = int(addr, 16)
             name = name.replace('<','(').replace('>',')')
